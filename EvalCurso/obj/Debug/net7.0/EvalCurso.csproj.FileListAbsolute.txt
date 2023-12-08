@@ -1,0 +1,6 @@
+C:\EvalCurso\obj\Debug\net7.0\EvalCurso.csproj.AssemblyReference.cache
+C:\EvalCurso\obj\Debug\net7.0\EvalCurso.GeneratedMSBuildEditorConfig.editorconfig
+C:\EvalCurso\obj\Debug\net7.0\EvalCurso.AssemblyInfoInputs.cache
+C:\EvalCurso\obj\Debug\net7.0\EvalCurso.AssemblyInfo.cs
+C:\EvalCurso\obj\Debug\net7.0\EvalCurso.csproj.CoreCompileInputs.cache
+C:\EvalCurso\obj\Debug\net7.0\EvalCurso.MvcApplicationPartsAssemblyInfo.cache

@@ -1,0 +1,129 @@
+@page "/Logi"
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using FrontEval.Data
+
+@inject LocalStorageService LocalStorageService
+
+
+<style>
+    .form-agregar {
+        max-width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .form-agregar label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .form-agregar input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    .form-agregar button {
+        background-color: #4caf50;
+        color: #fff;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .form-agregar button:hover {
+        background-color: #45a049;
+    }
+
+    /* Estilo 3D */
+    .form-agregar::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        background: linear-gradient(45deg, #3498db, #e74c3c);
+        z-index: -1;
+        border-radius: 10px;
+    }
+
+    /* Efecto de sombra */
+    .form-agregar::after {
+        content: "";
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: -2;
+        border-radius: 10px;
+    }
+</style>
+
+
+
+@if (mostrarFormulario)
+{
+    <!-- Formulario para agregar estudiante -->
+    <form @onsubmit="@LoginUser" class="form-agregar">
+        <label>Username: </label>
+        <input type="text" @bind="NuevoLogin.username" required />
+
+        <label>Password: </label>
+        <input type="password" @bind="NuevoLogin.password" required />
+
+        <button type="submit">Inicia Sesion</button>
+    </form>
+@*     <button @onclick="MostrarFormulario">Registrate </button>
+ *@}
+
+@code
+{
+    private bool mostrarFormulario = false;
+    private Login NuevoLogin = new Login();
+
+        protected override void OnInitialized()
+    {
+        // Llamar a MostrarFormulario en la inicialización de la página
+        MostrarFormulario();
+    }
+
+    private void MostrarFormulario()
+    {
+        mostrarFormulario = true;
+    }
+    private async Task LoginUser()
+    {
+        // Lógica para autenticar al usuario y obtener el token
+        var response = await Http.PostAsJsonAsync("http://localhost:5243/api/User/token", NuevoLogin);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadAsStringAsync();
+
+            // Almacenar el token en Local Storage
+            await LocalStorageService.SetItem("authToken", token);
+            Console.WriteLine(NuevoLogin);
+            // Resto de la lógica después del inicio de sesión, si es necesario
+        }
+
+        mostrarFormulario = false;
+
+        // Limpiar los campos del nuevo estudiante
+        NuevoLogin = new Login();
+    }
+}

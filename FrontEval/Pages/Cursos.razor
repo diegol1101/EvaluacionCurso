@@ -1,0 +1,229 @@
+﻿@page "/Cur"
+
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using FrontEval.Data
+
+<style>
+    /* Estilos para el botón de agregar */
+    .btn-agregar {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    /* Estilos para el formulario */
+.form-agregar {
+        display: flex;
+        flex-direction: column;
+        max-width: 300px;
+        margin-bottom: 20px;
+        background-color: #fafafa;
+        /* Fondo del formulario */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-agregar label {
+        margin-bottom: 5px;
+    }
+
+    .form-agregar input,
+    .form-agregar textarea {
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-agregar button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .form-agregar button:hover {
+        background-color: #45a049;
+        /* Cambio de color al pasar el mouse */
+    }
+
+    /* Estilos para la card de curso */
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 50px;
+        justify-content: center;
+    }
+
+    .card {
+        background-color: #eee6f7; /* Color pastel para el fondo */
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Efecto sombra 3D */
+        width: 270px;
+        text-align: center;
+        transition: transform 0.4s ease-in-out; /* Transición suave en el hover */
+        margin-bottom: 20px; /* Espaciado entre las cards */
+    }
+
+    .card:hover {
+        transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+    }
+
+    .btn-eliminar {
+        background-color: #f03333; /* Color rojo */
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+</style>
+
+
+<button class="btn-agregar" @onclick="MostrarFormulario">Nuevo Curso</button>
+
+@if (mostrarFormulario)
+{
+    <form @onsubmit="AgregarCurso" class="form-agregar">
+        <label>Nombre: </label>
+        <input type="text" @bind="nuevoCurso.nombre" required />
+
+        <label>Descripción: </label>
+        <textarea @bind="nuevoCurso.descripcion" required></textarea>
+
+        <label>Fecha de Inicio: </label>
+        <input type="date" @bind="nuevoCurso.fechaInicio" required />
+
+        <label>Fecha de Finalización: </label>
+        <input type="date" @bind="nuevoCurso.fechaFinalizacion" required />
+
+        <label>Evaluación: </label>
+        <input type="text" @bind="nuevoCurso.evaluacion" required />
+
+        <label>Id Estudiante: </label>
+        <input type="text" @bind="nuevoCurso.idEstudiante" required />
+
+        <label>Id Profesor: </label>
+        <input type="text" @bind="nuevoCurso.idProfesor" required />
+
+        <button type="submit">Guardar Curso</button>
+    </form>
+}
+
+@if (curso == null)
+{
+    <p>No Todo Items found.</p>
+}
+else
+{
+    <div class="card-container">
+        @foreach (var item in curso)
+        {
+            <div class="card">
+                <img src="@GetImageForCurso(item.id)" alt="Imagen del curso" />
+                <h3>@item.nombre</h3>
+                <p>ID: @item.id</p>
+                <p>Descripción: @item.descripcion</p>
+                <p>Modo De Evaluacion: @item.evaluacion</p>
+                <p>Fecha de Inicio: @item.fechaInicio.ToString("yyyy-MM-dd")</p>
+                <p>Fecha de Finalización: @item.fechaFinalizacion.ToString("yyyy-MM-dd")</p>
+                <button class="btn-eliminar" @onclick="() => EliminarCurso(item.id)">Eliminar</button>
+            </div>
+        }
+    </div>
+}
+
+
+@code {
+    private Curso[] curso;
+    private bool mostrarFormulario = false;
+    private Curso nuevoCurso = new Curso();
+    private string mensajeError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCursos();
+    }
+
+    private async Task CargarCursos()
+    {
+        try
+        {
+            curso = await Http.GetFromJsonAsync<Curso[]>("http://localhost:5243/api/Curso");
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar cursos: {ex.Message}";
+        }
+    }
+
+    private void MostrarFormulario()
+    {
+        mostrarFormulario = true;
+    }
+
+    private async Task AgregarCurso()
+    {
+        try
+        {
+            await Http.PostAsJsonAsync("http://localhost:5243/api/Curso", nuevoCurso);
+
+            await CargarCursos();
+
+            mostrarFormulario = false;
+            nuevoCurso = new Curso();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al agregar el curso: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarCurso(int id)
+    {
+        try
+        {
+            await Http.DeleteAsync($"http://localhost:5243/api/Curso/{id}");
+
+            await CargarCursos();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al eliminar el curso: {ex.Message}";
+        }
+    }
+
+    private string GetImageForCurso(int courseId)
+    {
+        switch (courseId)
+        {
+            case 1:
+                return "Images/Desarrollo.png";
+            case 2:
+                return "Images/Emprendimiento.png";
+            case 3:
+                return "Images/Manejo.webp";
+            default:
+                return "Images/Default.jpg";
+        }
+    }
+}
+
+
+

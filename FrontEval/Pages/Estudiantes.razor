@@ -1,0 +1,227 @@
+@page "/Estu"
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using FrontEval.Data
+
+<style>
+    /* Estilos para el botón de agregar */
+    .btn-agregar {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    /* Estilos para el botón de eliminar */
+    .btn-eliminar {
+        background-color: #FF5733; /* Rojo */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px; /* Margen derecho para separar del botón de agregar */
+    }
+
+    /* Estilos para el formulario */
+.form-agregar {
+        display: flex;
+        flex-direction: column;
+        max-width: 300px;
+        margin-bottom: 20px;
+        background-color: #fafafa;
+        /* Fondo del formulario */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-agregar label {
+        margin-bottom: 5px;
+    }
+
+    .form-agregar input,
+    .form-agregar textarea {
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-agregar button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .form-agregar button:hover {
+        background-color: #45a049;
+        /* Cambio de color al pasar el mouse */
+    }
+
+    .table-container {
+        max-width: 800px;
+        margin: 20px auto;
+        background-color: #efe6e6; /* Fondo claro */
+        border-radius: 10px; /* Bordes redondeados */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Efecto sombra 3D */
+        overflow: hidden; /* Para evitar que la sombra se extienda */
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        border: 1px solid #ecd9d9; /* Borde claro */
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e47070; /* Borde inferior de las celdas */
+    }
+
+    th {
+        background-color: #f2f2f2;
+        border-top: 1px solid #e47070; /* Borde superior de la primera fila */
+    }
+
+    .btn-agregar{
+        background-color: #4caf54;
+        color: white;
+        padding: 8px 8px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-right: 8px;
+    }
+
+    .btn-eliminar {
+        background-color: #f03333;
+        color: rgb(243, 238, 238);
+        margin-top: 4px;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+</style>
+
+
+
+@if (mostrarFormulario)
+{
+    <!-- Formulario para agregar estudiante -->
+    <form @onsubmit="AgregarEstudiante" class="form-agregar">
+        <label>ID Estudiante: </label>
+        <input type="number" @bind="nuevoEstudiante.idEstudiante" required />
+
+        <label>Nombre: </label>
+        <input type="text" @bind="nuevoEstudiante.nombre" required />
+
+        <label>Apellido: </label>
+        <input type="text" @bind="nuevoEstudiante.apellido" required />
+
+        <label>Edad: </label>
+        <input type="number" @bind="nuevoEstudiante.edad" required />
+
+        <label>Correo: </label>
+        <input type="email" @bind="nuevoEstudiante.correo" required />
+
+        <button type="submit">Agregar</button>
+    </form>
+}
+
+@if (estudiante == null)
+{
+    <p>No se encontraron elementos.</p>
+}
+else
+{
+    <button class="btn-agregar" @onclick="MostrarFormulario">Agregar Estudiante</button>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Numero Est</th>
+                    <th>Id Estudiante</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Edad</th>
+                    <th>Correo</th>
+                    <th>Acciones</th> <!-- Agregado para la columna de acciones -->
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in estudiante)
+                {
+                    <tr>
+                        <td>@item.id</td>
+                        <td>@item.idEstudiante</td>
+                        <td>@item.nombre</td>
+                        <td>@item.apellido</td>
+                        <td>@item.edad</td>
+                        <td>@item.correo</td>
+                        <td>
+                            <button class="btn-eliminar" @onclick="() => EliminarEstudiante(item.id)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+                
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private Estudiante[] estudiante;
+    private bool mostrarFormulario = false;
+    private Estudiante nuevoEstudiante = new Estudiante();
+
+    protected override async Task OnInitializedAsync() =>
+        estudiante = await Http.GetFromJsonAsync<Estudiante[]>("http://localhost:5243/api/Estudiante");
+
+    private void MostrarFormulario()
+    {
+        mostrarFormulario = true;
+    }
+
+    private async Task AgregarEstudiante()
+    {
+        // Lógica para agregar estudiante
+        await Http.PostAsJsonAsync("http://localhost:5243/api/Estudiante", nuevoEstudiante);
+
+        // Recargar la lista de estudiantes
+        estudiante = await Http.GetFromJsonAsync<Estudiante[]>("http://localhost:5243/api/Estudiante");
+
+        // Ocultar el formulario después de agregar el estudiante
+        mostrarFormulario = false;
+
+        // Limpiar los campos del nuevo estudiante
+        nuevoEstudiante = new Estudiante();
+    }
+
+    private async Task EliminarEstudiante(int id)
+    {
+        // Lógica para eliminar estudiante por su ID
+        await Http.DeleteAsync($"http://localhost:5243/api/Estudiante/{id}");
+
+        // Recargar la lista de estudiantes después de eliminar
+        estudiante = await Http.GetFromJsonAsync<Estudiante[]>("http://localhost:5243/api/Estudiante");
+    }
+}
+
+
+

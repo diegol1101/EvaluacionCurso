@@ -1,0 +1,174 @@
+
+
+@page "/Prof"
+
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using FrontEval.Data
+
+<style>
+    .form-agregar {
+        display: flex;
+        flex-direction: column;
+        max-width: 300px;
+        margin-bottom: 20px;
+        background-color: #fafafa;
+        /* Fondo del formulario */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-agregar label {
+        margin-bottom: 5px;
+    }
+
+    .form-agregar input,
+    .form-agregar textarea {
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-agregar button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .form-agregar button:hover {
+        background-color: #45a049;
+        /* Cambio de color al pasar el mouse */
+    }
+    
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        justify-content: center;
+    }
+
+    .card {
+        background-color: #ffe4c4; /* Color pastel, puedes ajustarlo según tus preferencias */
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Efecto sombra 3D */
+        width: 200px;
+        text-align: center;
+        transition: transform 0.3s ease-in-out; /* Transición suave en el hover */
+    }
+
+    .card:hover {
+        transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+    }
+
+    .card-info {
+        margin: 0;
+        font-weight: bold;
+        color: #333; /* Color del texto */
+    }
+    
+
+    .btn-agregar, .btn-eliminar {
+        background-color: #4caf54;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    .btn-eliminar {
+        background-color: #f03333;
+    }
+</style>
+
+@if (profesores == null)
+{
+    <p>No Todo Items found.</p>
+}
+else
+{
+    <div>
+        <button class="btn-agregar" @onclick="MostrarFormulario">Agregar Profesor</button>
+
+        @if (mostrarFormularioAgregar)
+        {
+            <form @onsubmit="AgregarProfesor" class="form-agregar">
+                <!-- Agrega aquí los campos del formulario para agregar profesor -->
+                <label>Id Profesor:</label>
+                <input type="text" @bind="nuevoProfesor.id_profesor" required />
+
+                <label>Nombre Profesor:</label>
+                <input type="text" @bind="nuevoProfesor.nombre" required />
+
+                <label>Procedencia:</label>
+                <input type="text" @bind="nuevoProfesor.procedencia" required />
+
+                <button type="submit">Guardar Profesor</button>
+            </form>
+        }
+
+        <div class="card-container">
+            @foreach (var profesor in profesores)
+            {
+                <div class="card">
+                    <p>ID: @profesor.id</p>
+                    <p>Id Profesor: @profesor.id_profesor</p>
+                    <p>Nombre Profesor: @profesor.nombre</p>
+                    <p>Procedencia: @profesor.procedencia</p>
+                    <button class="btn-eliminar" @onclick="() => EliminarProfesor(profesor.id)">Eliminar</button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private Profesor[] profesores;
+    private bool mostrarFormularioAgregar = false;
+    private Profesor nuevoProfesor = new Profesor();
+
+    protected override async Task OnInitializedAsync()
+    {
+        profesores = await Http.GetFromJsonAsync<Profesor[]>("http://localhost:5243/api/Profesor/ProfesorDpto");
+    }
+
+    private void MostrarFormulario()
+    {
+        mostrarFormularioAgregar = true;
+    }
+
+    private async Task AgregarProfesor()
+    {
+        // Lógica para agregar el profesor, puedes utilizar Http.PostAsJsonAsync
+        await Http.PostAsJsonAsync("http://localhost:5243/api/Profesor", nuevoProfesor);
+
+        // Actualizar la lista de profesores después de agregar uno nuevo
+        profesores = await Http.GetFromJsonAsync<Profesor[]>("http://localhost:5243/api/Profesor/ProfesorDpto");
+
+        // Ocultar el formulario después de agregar
+        mostrarFormularioAgregar = false;
+
+        // Limpiar el modelo del nuevo profesor
+        nuevoProfesor = new Profesor();
+    }
+
+    private async Task EliminarProfesor(int id)
+    {
+        // Lógica para eliminar el profesor, puedes utilizar Http.DeleteAsync
+        await Http.DeleteAsync($"http://localhost:5243/api/Profesor/{id}");
+
+        // Actualizar la lista de profesores después de eliminar uno
+        profesores = await Http.GetFromJsonAsync<Profesor[]>("http://localhost:5243/api/Profesor/ProfesorDpto");
+    }
+}
