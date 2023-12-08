@@ -20,5 +20,9 @@ Calificaciones:
 Profesores:
 ![image](https://github.com/diegol1101/EvaluacionCurso/assets/116105368/03ff24dc-17c2-41ea-9977-4a62ce7485fe)
 
+cabe anotar que los modulos a excepcion de notas que solo permite agregar, permiten agregar y eliminar informacion.
+
+
+
 
 
